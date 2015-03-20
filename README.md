@@ -11,6 +11,7 @@ Features
 
 Installation
 ------------------------
+This uses some features in Mongo 2.6 and above, so Meteor 1.0.4+ is required. I don't have it as a hard requirement at this point, since 1.0.4 is new and autofrom doesn't work with it yet, but your Mongo version will need to be 2.6+
 ```
 meteor add todda00:collection-revisions
 ```
@@ -66,7 +67,7 @@ debug | false | Turn to true to get console debug messages.
 
 Restoring a Revision
 ------------------------
-A revision can be restored by calling CollectionRevisions.restore from either the client, server, or both. It will follow the same allow / deny permissions for an update, or use your own permissions and call CollectionRevisions.restore within a method call.
+A revision can be restored by calling CollectionRevisions.restore from either the client, server, or both. It will follow the same allow / deny permissions for an update, or use your own permissions and call CollectionRevisions.restore within a method call. If you want the simulation to run correctly on the client, the document needs to be published and the revisions field present.
 ```
 CollectionRevisions.restore(collectionName, documentId, revision);
 ```
