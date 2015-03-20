@@ -2,6 +2,8 @@ Collection Revisions for Meteor
 ------------------------
 The main purpose of this package is to retain revisions of collection documents and allow for the restore of those revisions.
 
+##WARNING: THIS IS STILL A WORK IN PROGRESS
+
 Features
 ------------------------
 - Saves a revision of the entire document when updates are made to it.
@@ -49,7 +51,7 @@ CollectionRevisions.Foo = {
   ... define whatever options you want to override the global or package defaults
 }
 
-Collection.attachCollectionRevisions(CollectionRevisions.Foo);
+Foo.attachCollectionRevisions(CollectionRevisions.Foo);
 ```
 
 Options
@@ -124,7 +126,7 @@ Template.fooRevisions.events
     foo = Template.parentData()
 
     #restore the revision
-    CollectionRevisions.restore('Foo', foo._id, @_id) 
+    CollectionRevisions.restore('Foo', foo._id, @revisionId) 
 ```
 
 
