@@ -1,6 +1,6 @@
 root = exports ? this
 
-CollectionRevisions.restore = (collectionName, documentId, revision) ->
+root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
 
   check(collectionName, String)
   check(documentId, String)
@@ -26,7 +26,28 @@ CollectionRevisions.restore = (collectionName, documentId, revision) ->
   #remove the revisionID
   delete revision.revisionId
 
-  #update the document with the revision revision data
+  #get all document fields
+  docKeys = _.keys(doc)
+  #remove _id and revisions fields
+  docKeys = _.without(docKeys,'_id','revisions')
 
-  collection.update({_id:doc._id},{$set:revision})
+  #get all revision fields
+  revKeys = _.keys(revision)
+
+  #find keys that are present in the document that are not in the revision
+  #these will be unset
+  unsetFields = _.difference(docKeys,revKeys)
+
+  #Tee up the modifier
+  modifier = {}
+  if !_.isEmpty revision
+    modifier.$set = revision
+
+  if unsetFields.length > 0
+    modifier.$unset = {}
+    _.each unsetFields, (field) ->
+      modifier.$unset[field] = ""
+
+  #update the document with the revision data
+  collection.update({_id:doc._id},modifier)
   return

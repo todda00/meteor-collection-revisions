@@ -2,10 +2,6 @@ Collection Revisions for Meteor
 ------------------------
 The main purpose of this package is to retain revisions of collection documents and allow for the restore of those revisions.
 
-##WARNING: THIS IS STILL A WORK IN PROGRESS
-------------------------
-Should work for $set items, it currently doesn't unset anything present in the current revision when restoring an older revision without that item.
-
 Features
 ------------------------
 - Saves a revision of the entire document when updates are made to it.
