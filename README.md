@@ -11,7 +11,7 @@ Features
 
 Installation
 ------------------------
-This uses some features in Mongo 2.6 and above, so Meteor 1.0.4+ is required. I don't have it as a hard requirement at this point, since 1.0.4 is new and autofrom doesn't work with it yet, but your Mongo version will need to be 2.6+
+This uses some features in Mongo 2.6 and above, so Meteor 1.0.4+ is required.
 ```
 meteor add todda00:collection-revisions
 ```

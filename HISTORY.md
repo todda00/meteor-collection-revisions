@@ -1,5 +1,8 @@
 HISTORY.md
 
+### v0.2.1
+  - Add required dependencies to package.js
+
 ### v0.2.0
   - Changed restore logic to unset fields present in the current revision when restoring an older revision without those fields.
 
