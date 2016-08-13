@@ -9,6 +9,7 @@ CollectionRevisions.defaults =
   ignoreWithinUnit: 'minutes'
   keep: true
   debug: false
+  prune: false
 
 # backwards compatibility
 if typeof Mongo is "undefined"
@@ -35,6 +36,7 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     ignoreWithinUnit: String
     keep: Number
     debug: Boolean
+    prune: Boolean
 
   check(opts,Match.ObjectIncluding(fields))
 
@@ -55,9 +57,6 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     modifier = modifier || {}
     modifier.$set = modifier.$set || {}
 
-    #Set the last Modified date to now
-    modifier.$set[opts.lastModifiedField] = new Date()
-
     #Unset the revisions field and _id from the doc before saving to the revisions
     delete doc[opts.field]
     delete doc._id
@@ -69,12 +68,24 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     if moment(doc[opts.lastModifiedField]).isBefore(moment().subtract(opts.ignoreWithin,opts.ignoreWithinUnit)) or opts.ignoreWithin is 0 or !doc[opts.lastModifiedField]?
       #If so, add a new revision
       crDebug(opts,'Is past ignore window, creating revision')
-      modifier.$push = modifier.$push || {}
-      
-      modifier.$push[opts.field] = {$each: [doc], $position: 0}
-      #See if we are limiting how many to keep
-      if opts.keep > -1
-        modifier.$push[opts.field].$slice = opts.keep
+
+      #Create new revision and set the last Modified date if pruning is not enabled
+      if not opts.prune
+        modifier.$set[opts.lastModifiedField] = new Date()
+        modifier.$push = modifier.$push || {}
+        modifier.$push[opts.field] = {$each: [doc], $position: 0}
+
+        #See if we are limiting how many to keep
+        if opts.keep > -1
+          modifier.$push[opts.field].$slice = opts.keep
+
+      #Prune the revision being restored and all revisions after
+      else
+        modifier.$pull = modifier.$pull || {}
+        modifier.$pull[opts.field] = modifier.$pull[opts.field] || {}
+        modifier.$pull[opts.field][opts.lastModifiedField] = {
+          $gte: modifier.$set[opts.lastModifiedField]
+        }
 
       crDebug(opts,modifier,'Final Modifier')
     else
