@@ -8,6 +8,7 @@ Features
 - Revisions are stored within a field of the document, so no extra publications or subscriptions are needed to get the revisions.
 - Can specify how many revisions to keep per document, or keep unlimited
 - Can specify to not create revisions for updates made within a certain amount of time since the last revision (helpful for autoform with autosave triggering multiple updates)
+- Prune foregoing revisions upon restore
 
 Installation
 ------------------------
@@ -62,6 +63,7 @@ lastModifiedField | 'lastModified' | Name of the field storing the date / time t
 ignoreWithin | false | If an update occurs within this timeframe since the last update, a new revision will not be created. Keep as false to capture all updates (no unit needed if false). *false or Number*
 ignoreWithinUnit | 'minutes' | the unit that goes along with the ignoreWithin number. Ignored if ignoreWithin is false *(seconds/minutes/hours/etc)*
 keep | true | Specify a number if you wish to only retain a limited number of revisions per document. True = retain all revisions. *Number or Boolean*
+prune | false | Will delete the restored revision and all subsequent revisions. *Boolean* 
 debug | false | Turn to true to get console debug messages.
 
 
