@@ -14,12 +14,13 @@ root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
   doc = collection.findOne({_id:documentId})
   return false if !doc?
 
-  #Find out what field is in use for the revisions
-  revisionField = CollectionRevisions[collectionName].field
+  #Load options
+  opts = CollectionRevisions[collectionName] || {}
+  _.defaults(opts, CollectionRevisions.defaults)
 
   #grab the revision if the revison is just an ID
   if typeof revision is 'string'
-    revision = _.find doc[revisionField], (rev) ->
+    revision = _.find doc[opts.field], (rev) ->
       return rev.revisionId is revision
     return false if !revision?
 
@@ -29,7 +30,7 @@ root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
   #get all document fields
   docKeys = _.keys(doc)
   #remove _id and revisions fields
-  docKeys = _.without(docKeys,'_id','revisions')
+  docKeys = _.without(docKeys,'_id',opts.field)
 
   #get all revision fields
   revKeys = _.keys(revision)
