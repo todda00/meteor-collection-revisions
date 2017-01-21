@@ -37,6 +37,7 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     keep: Number
     debug: Boolean
     prune: Boolean
+    callback: Function
 
   check(opts,Match.ObjectIncluding(fields))
 
@@ -61,6 +62,11 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     delete doc[opts.field]
     delete doc._id
     doc.revisionId = Random.id()
+
+    #Perform callback if provided
+    if opts.callback
+      if opts.callback(doc, modifier) == false
+        return true
 
     #See if this update occured more than the ignored time window since the last one
     #or the option is set to not ignore within

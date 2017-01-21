@@ -9,6 +9,7 @@ Features
 - Can specify how many revisions to keep per document, or keep unlimited
 - Can specify to not create revisions for updates made within a certain amount of time since the last revision (helpful for autoform with autosave triggering multiple updates)
 - Prune foregoing revisions upon restore
+- Callback function that provides two parameters - the revision and modifier objects before the collection update. Returning false in the callback will cancel the creation of a revision.
 
 Installation
 ------------------------
@@ -65,6 +66,7 @@ ignoreWithinUnit | 'minutes' | the unit that goes along with the ignoreWithin nu
 keep | true | Specify a number if you wish to only retain a limited number of revisions per document. True = retain all revisions. *Number or Boolean*
 prune | false | Will delete the restored revision and all subsequent revisions. *Boolean* 
 debug | false | Turn to true to get console debug messages.
+callback | undefined | Allows custom code to be executed against the revision and modifier objects before updating the collection.
 
 
 Restoring a Revision
@@ -129,18 +131,31 @@ Template.fooRevisions.events
     CollectionRevisions.restore('Foo', foo._id, @revisionId) 
 ```
 
+Callbacks
+------------------------
+Callback format is ``function(revision, modifier)``.
+
+This can be used to make changes to the revision before it is saved. Example:
+```js
+CollectionRevisions.Employee = {
+  callback: function(revision, modifier) {
+    // This allows a custom field be inserted into the revision
+    revision.dateTermination = modifier.$set.dateEffective;
+  }
+}
+```
+
+This can also be used to allow custom logic that negates creating a revision by returning false:
+```js
+CollectionRevisions.Employee = {
+  callback: function(revision, modifier) {
+    // Do no create a revision if the effective date did not change 
+    if(revision.dateEffective.getTime() === modifier.$set.dateEffective.getTime())
+        return false;
+  }
+}
+```
 
 Updates Using multi=true
 ------------------------
 This package will not create revisions for Documents when an update is for multiple documents (multi=true)
-
-Wishlist
-------------------------
-- Option to ignore (not save) certain fields within your documents
-- Let me know if you think anything else would be beneficial.
-
-Feedback / Bugs / Fixes
-------------------------
-This is a pretty new package, let me know if something isn't working for your use case.
-
-Feedback and PRs are welcome.
