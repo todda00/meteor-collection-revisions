@@ -15,7 +15,7 @@ Installation
 ------------------------
 This uses some features in Mongo 2.6 and above, so Meteor 1.0.4+ is required.
 ```
-meteor add todda00:collection-revisions
+meteor add nicklozon:collection-revisions
 ```
 
 Usage
