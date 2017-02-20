@@ -1,5 +1,8 @@
 HISTORY.md
 
+### v0.3.1
+  - Added export for CollectionRevisions, fixed references when using export
+
 ### v0.3.0
   - Fixed bug for restoring revision when revisions field is not set for collection
   - Added a revision prune feature which will remove restored revision and all revisions after it

@@ -1,6 +1,6 @@
 Package.describe({
   name: 'nicklozon:collection-revisions',
-  version: '0.3.0',
+  version: '0.3.1',
   // Brief, one-line summary of the package.
   summary: 'Keep revision history for collection documents and provide restore functionality.',
   // URL to the Git repository containing the source code for this package.
@@ -14,4 +14,5 @@ Package.onUse(function(api) {
   api.use(['underscore', 'check', 'coffeescript@1.0.5','random@1.0.2','matb33:collection-hooks@0.7.6','momentjs:moment@2.9.0']);
   api.versionsFrom('1.0.4');
   api.addFiles(['collectionRevisions.coffee','restoreRevision.coffee']);
+  api.export(['CollectionRevisions'], ['client', 'server']);
 });

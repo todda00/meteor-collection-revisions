@@ -15,8 +15,8 @@ root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
   return false if !doc?
 
   #Load options
-  opts = CollectionRevisions[collectionName] || {}
-  _.defaults(opts, CollectionRevisions.defaults)
+  opts = root.CollectionRevisions[collectionName] || {}
+  _.defaults(opts, root.CollectionRevisions.defaults)
 
   #grab the revision if the revison is just an ID
   if typeof revision is 'string'

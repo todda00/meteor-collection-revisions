@@ -1,5 +1,6 @@
 root = exports ? this
 root.CollectionRevisions = {}
+CollectionRevisions = root.CollectionRevisions
 
 #Setup defaults
 CollectionRevisions.defaults =
