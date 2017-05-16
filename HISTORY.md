@@ -1,5 +1,9 @@
 HISTORY.md
 
+### v0.3.2
+  - Fixed issue when callback option was not defined - it should be allowed to be undefined/null.
+  - Code cleanup
+
 ### v0.3.1
   - Added export for CollectionRevisions, fixed references when using export
 
