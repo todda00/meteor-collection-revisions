@@ -38,7 +38,7 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     keep: Number
     debug: Boolean
     prune: Boolean
-    callback: Function
+    callback: Match.Maybe(Function)
 
   check(opts,Match.ObjectIncluding(fields))
 
