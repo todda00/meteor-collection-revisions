@@ -76,9 +76,16 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
       #If so, add a new revision
       crDebug(opts,'Is past ignore window, creating revision')
 
-      #Create new revision and set the last Modified date if pruning is not
-      #enabled or the last Modified date is not already set
-      if not opts.prune or not modifier.$set[opts.lastModifiedField]
+      #If pruning is enabled AND this update is restoring a revision, prune the
+      #revision being restored and all revisions after using $pull
+      if opts.prune and modifier.$set[opts.lastModifiedField]
+        modifier.$pull = modifier.$pull || {}
+        modifier.$pull[opts.field] = modifier.$pull[opts.field] || {}
+        modifier.$pull[opts.field][opts.lastModifiedField] = {
+          $gte: modifier.$set[opts.lastModifiedField]
+        }
+      #If pruning is NOT occuring, insert a new revision using $push
+      else
         modifier.$set[opts.lastModifiedField] = new Date()
         modifier.$push = modifier.$push || {}
         modifier.$push[opts.field] = {$each: [doc], $position: 0}
@@ -87,15 +94,6 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
         if opts.keep > -1
           modifier.$push[opts.field].$slice = opts.keep
 
-      #Pruning is enabled and the lastModifiedField is set which indicates a
-      #restore is occuring, so prune the revision being restored and all
-      #revisions after
-      else
-        modifier.$pull = modifier.$pull || {}
-        modifier.$pull[opts.field] = modifier.$pull[opts.field] || {}
-        modifier.$pull[opts.field][opts.lastModifiedField] = {
-          $gte: modifier.$set[opts.lastModifiedField]
-        }
 
       crDebug(opts,modifier,'Final Modifier')
     else
