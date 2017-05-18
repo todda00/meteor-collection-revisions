@@ -13,11 +13,12 @@ CollectionRevisions.defaults =
   prune: false
 
 # backwards compatibility
-if typeof Mongo is "undefined"
-  Mongo = {}
-  Mongo.Collection = Meteor.Collection
+mongo = Mongo
+if typeof mongo is "undefined"
+  mongo = {}
+  mongo.Collection = Meteor.Collection
 
-Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
+mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
   collection = @
 
   _.defaults(opts, CollectionRevisions.defaults)
@@ -93,7 +94,6 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
         #See if we are limiting how many to keep
         if opts.keep > -1
           modifier.$push[opts.field].$slice = opts.keep
-
 
       crDebug(opts,modifier,'Final Modifier')
     else

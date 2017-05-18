@@ -66,7 +66,7 @@ ignoreWithinUnit | 'minutes' | the unit that goes along with the ignoreWithin nu
 keep | true | Specify a number if you wish to only retain a limited number of revisions per document. True = retain all revisions. *Number or Boolean*
 prune | false | Will delete the restored revision and all subsequent revisions. *Boolean* 
 debug | false | Turn to true to get console debug messages.
-callback | undefined | Allows custom code to be executed against the revision and modifier objects before updating the collection.
+callback | undefined | Allows custom code to be executed against the revision and modifier objects before updating the collection. Takes two parameters: ``function(error, result)``. Refer to the [node mongodb driver documentation](http://mongodb.github.io/node-mongodb-native/2.2/api/Collection.html#update).
 
 
 Restoring a Revision
@@ -80,6 +80,7 @@ Parameter | Type | Description
 collectionName | String | This is the string name of your collection, ("Foo")
 documentId | String | the _id of the document you want to restore
 revision | revisionId or Object | Simplest form is to provide the revisionId stored within the revision, if you want to use specific data to restore, you can provide the revision object, overriding any fields you want to update the document to.
+callback | Function | Callback function that is executed when the update is completed.
 
 Showing a list of Revisions
 ------------------------

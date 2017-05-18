@@ -1,13 +1,19 @@
 root = exports ? this
 
-root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
+root.CollectionRevisions.restore = (collectionName, documentId, revision, cb) ->
 
   check(collectionName, String)
   check(documentId, String)
   check(revision, Match.OneOf(String, Object))
 
+  # backwards compatibility
+  mongo = Mongo
+  if typeof mongo is "undefined"
+    mongo = {}
+    mongo.Collection = Meteor.Collection
+
   #Load the collection
-  collection = root[collectionName]
+  collection = mongo.Collection.get(collectionName)
   return false if !collection?
 
   #Grab the document
@@ -49,6 +55,6 @@ root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
     _.each unsetFields, (field) ->
       modifier.$unset[field] = ""
 
-  #update the document with the revision data
-  collection.update({_id:doc._id},modifier)
+  #update the document with the revision data and provide callback
+  collection.update({_id:doc._id},modifier,cb)
   return
