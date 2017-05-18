@@ -13,10 +13,11 @@ CollectionRevisions.defaults =
   prune: false
 
 # backwards compatibility
-mongo = Mongo
-if typeof mongo is "undefined"
+if typeof Mongo is "undefined"
   mongo = {}
   mongo.Collection = Meteor.Collection
+else
+  mongo = Mongo
 
 mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
   collection = @

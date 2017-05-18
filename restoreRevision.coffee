@@ -7,10 +7,11 @@ root.CollectionRevisions.restore = (collectionName, documentId, revision, cb) ->
   check(revision, Match.OneOf(String, Object))
 
   # backwards compatibility
-  mongo = Mongo
-  if typeof mongo is "undefined"
+  if typeof Mongo is "undefined"
     mongo = {}
     mongo.Collection = Meteor.Collection
+  else
+    mongo = Mongo
 
   #Load the collection
   collection = mongo.Collection.get(collectionName)
