@@ -1,5 +1,6 @@
 root = exports ? this
 root.CollectionRevisions = {}
+CollectionRevisions = root.CollectionRevisions
 
 #Setup defaults
 CollectionRevisions.defaults =
@@ -9,13 +10,16 @@ CollectionRevisions.defaults =
   ignoreWithinUnit: 'minutes'
   keep: true
   debug: false
+  prune: false
 
 # backwards compatibility
 if typeof Mongo is "undefined"
-  Mongo = {}
-  Mongo.Collection = Meteor.Collection
+  mongo = {}
+  mongo.Collection = Meteor.Collection
+else
+  mongo = Mongo
 
-Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
+mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
   collection = @
 
   _.defaults(opts, CollectionRevisions.defaults)
@@ -35,6 +39,8 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     ignoreWithinUnit: String
     keep: Number
     debug: Boolean
+    prune: Boolean
+    callback: Match.Maybe(Function)
 
   check(opts,Match.ObjectIncluding(fields))
 
@@ -55,13 +61,15 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     modifier = modifier || {}
     modifier.$set = modifier.$set || {}
 
-    #Set the last Modified date to now
-    modifier.$set[opts.lastModifiedField] = new Date()
-
     #Unset the revisions field and _id from the doc before saving to the revisions
     delete doc[opts.field]
     delete doc._id
     doc.revisionId = Random.id()
+
+    #Perform callback if provided
+    if opts.callback
+      if opts.callback(doc, modifier) == false
+        return true
 
     #See if this update occured more than the ignored time window since the last one
     #or the option is set to not ignore within
@@ -69,12 +77,24 @@ Mongo.Collection.prototype.attachCollectionRevisions = (opts = {}) ->
     if moment(doc[opts.lastModifiedField]).isBefore(moment().subtract(opts.ignoreWithin,opts.ignoreWithinUnit)) or opts.ignoreWithin is 0 or !doc[opts.lastModifiedField]?
       #If so, add a new revision
       crDebug(opts,'Is past ignore window, creating revision')
-      modifier.$push = modifier.$push || {}
-      
-      modifier.$push[opts.field] = {$each: [doc], $position: 0}
-      #See if we are limiting how many to keep
-      if opts.keep > -1
-        modifier.$push[opts.field].$slice = opts.keep
+
+      #If pruning is enabled AND this update is restoring a revision, prune the
+      #revision being restored and all revisions after using $pull
+      if opts.prune and modifier.$set[opts.lastModifiedField]
+        modifier.$pull = modifier.$pull || {}
+        modifier.$pull[opts.field] = modifier.$pull[opts.field] || {}
+        modifier.$pull[opts.field][opts.lastModifiedField] = {
+          $gte: modifier.$set[opts.lastModifiedField]
+        }
+      #If pruning is NOT occuring, insert a new revision using $push
+      else
+        modifier.$set[opts.lastModifiedField] = new Date()
+        modifier.$push = modifier.$push || {}
+        modifier.$push[opts.field] = {$each: [doc], $position: 0}
+
+        #See if we are limiting how many to keep
+        if opts.keep > -1
+          modifier.$push[opts.field].$slice = opts.keep
 
       crDebug(opts,modifier,'Final Modifier')
     else

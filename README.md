@@ -8,12 +8,14 @@ Features
 - Revisions are stored within a field of the document, so no extra publications or subscriptions are needed to get the revisions.
 - Can specify how many revisions to keep per document, or keep unlimited
 - Can specify to not create revisions for updates made within a certain amount of time since the last revision (helpful for autoform with autosave triggering multiple updates)
+- Prune foregoing revisions upon restore
+- Callback function that provides two parameters - the revision and modifier objects before the collection update. Returning false in the callback will cancel the creation of a revision.
 
 Installation
 ------------------------
 This uses some features in Mongo 2.6 and above, so Meteor 1.0.4+ is required.
 ```
-meteor add todda00:collection-revisions
+meteor add nicklozon:collection-revisions
 ```
 
 Usage
@@ -62,7 +64,9 @@ lastModifiedField | 'lastModified' | Name of the field storing the date / time t
 ignoreWithin | false | If an update occurs within this timeframe since the last update, a new revision will not be created. Keep as false to capture all updates (no unit needed if false). *false or Number*
 ignoreWithinUnit | 'minutes' | the unit that goes along with the ignoreWithin number. Ignored if ignoreWithin is false *(seconds/minutes/hours/etc)*
 keep | true | Specify a number if you wish to only retain a limited number of revisions per document. True = retain all revisions. *Number or Boolean*
+prune | false | Will delete the restored revision and all subsequent revisions. *Boolean* 
 debug | false | Turn to true to get console debug messages.
+callback | undefined | Allows custom code to be executed against the revision and modifier objects before updating the collection. Takes two parameters: ``function(error, result)``. Refer to the [node mongodb driver documentation](http://mongodb.github.io/node-mongodb-native/2.2/api/Collection.html#update).
 
 
 Restoring a Revision
@@ -76,6 +80,7 @@ Parameter | Type | Description
 collectionName | String | This is the string name of your collection, ("Foo")
 documentId | String | the _id of the document you want to restore
 revision | revisionId or Object | Simplest form is to provide the revisionId stored within the revision, if you want to use specific data to restore, you can provide the revision object, overriding any fields you want to update the document to.
+callback | Function | Callback function that is executed when the update is completed.
 
 Showing a list of Revisions
 ------------------------
@@ -127,18 +132,31 @@ Template.fooRevisions.events
     CollectionRevisions.restore('Foo', foo._id, @revisionId) 
 ```
 
+Callbacks
+------------------------
+Callback format is ``function(revision, modifier)``.
+
+This can be used to make changes to the revision before it is saved. Example:
+```js
+CollectionRevisions.Employee = {
+  callback: function(revision, modifier) {
+    // This allows a custom field be inserted into the revision
+    revision.dateTermination = modifier.$set.dateEffective;
+  }
+}
+```
+
+This can also be used to allow custom logic that negates creating a revision by returning false:
+```js
+CollectionRevisions.Employee = {
+  callback: function(revision, modifier) {
+    // Do no create a revision if the effective date did not change 
+    if(revision.dateEffective.getTime() === modifier.$set.dateEffective.getTime())
+        return false;
+  }
+}
+```
 
 Updates Using multi=true
 ------------------------
 This package will not create revisions for Documents when an update is for multiple documents (multi=true)
-
-Wishlist
-------------------------
-- Option to ignore (not save) certain fields within your documents
-- Let me know if you think anything else would be beneficial.
-
-Feedback / Bugs / Fixes
-------------------------
-This is a pretty new package, let me know if something isn't working for your use case.
-
-Feedback and PRs are welcome.

@@ -1,25 +1,33 @@
 root = exports ? this
 
-root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
+root.CollectionRevisions.restore = (collectionName, documentId, revision, cb) ->
 
   check(collectionName, String)
   check(documentId, String)
   check(revision, Match.OneOf(String, Object))
 
+  # backwards compatibility
+  if typeof Mongo is "undefined"
+    mongo = {}
+    mongo.Collection = Meteor.Collection
+  else
+    mongo = Mongo
+
   #Load the collection
-  collection = root[collectionName]
+  collection = mongo.Collection.get(collectionName)
   return false if !collection?
 
   #Grab the document
   doc = collection.findOne({_id:documentId})
   return false if !doc?
 
-  #Find out what field is in use for the revisions
-  revisionField = CollectionRevisions[collectionName].field
+  #Load options
+  opts = root.CollectionRevisions[collectionName] || {}
+  _.defaults(opts, root.CollectionRevisions.defaults)
 
   #grab the revision if the revison is just an ID
   if typeof revision is 'string'
-    revision = _.find doc[revisionField], (rev) ->
+    revision = _.find doc[opts.field], (rev) ->
       return rev.revisionId is revision
     return false if !revision?
 
@@ -29,7 +37,7 @@ root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
   #get all document fields
   docKeys = _.keys(doc)
   #remove _id and revisions fields
-  docKeys = _.without(docKeys,'_id','revisions')
+  docKeys = _.without(docKeys,'_id',opts.field)
 
   #get all revision fields
   revKeys = _.keys(revision)
@@ -48,6 +56,6 @@ root.CollectionRevisions.restore = (collectionName, documentId, revision) ->
     _.each unsetFields, (field) ->
       modifier.$unset[field] = ""
 
-  #update the document with the revision data
-  collection.update({_id:doc._id},modifier)
+  #update the document with the revision data and provide callback
+  collection.update({_id:doc._id},modifier,cb)
   return
